@@ -144,5 +144,7 @@ _G.catch = catch
 _G.finally = finally
 
 
+Error.__version = VERSION
+
 
 return Error
