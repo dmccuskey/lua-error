@@ -1,8 +1,8 @@
 ## lua-error ##
 
-Robust try, catch, finally error handling for Lua which features:
+Robust error handling for Lua which features:
 
-* try, catch, finally
+* `try()`, `catch()`, `finally()` functions
 * custom error objects
 
 
@@ -12,6 +12,7 @@ Robust try, catch, finally error handling for Lua which features:
 -- import creates a base Error class and global funcs try(), catch(), finally()
 
 local Error = require 'lua_error'
+
 
 -- do this anywhere in your code:
 
@@ -32,13 +33,13 @@ try{
 }
 ```
 
-The `catch` and `finally` are optional.
+Note: the `catch{}` and `finally{}` are optional.
 
 
 
 ### Overview ###
 
-The library is a culmination of several ideas found on the Internet put into a cohesive package. (see References below). It was also inspired by the error handling in Python.
+The library is a culmination of several ideas found on the Internet put into a cohesive package. It was also inspired by the error handling in Python. (see References below)
 
 There are two different components to this library which can either be used together or independantly:
 
@@ -74,16 +75,18 @@ Though one feature of `error()` which we can use to our advantage is that it wil
 
 #### try(), catch(), finally() ####
 
-This function trio is the backbone of awesome error handling. The following is the basic structure using all three of the functions. It was chosen for its readability.
+This function trio is the backbone of awesome error handling. The following is the basic structure using all three of the functions.
 
 Note: in the example below, `<func ref>` represents a function reference, for example: `function() -- do stuff end`.
 
 ```
 try{
   <func ref>,
+  
   catch{
     <func ref>
   },
+  
   finally{
     <func ref>
   }
@@ -95,9 +98,9 @@ This format works because it takes advantage of Lua's dual-way to call functions
 
 `hello()` or `hello{}`, the latter being equivalent to `hello( {} )`
 
-So essentially this format is really a function `try()` which accepts a single argument – an array of up to three function references). The order of the references is `try`, `catch`, and `finally`.
+So essentially this format is really a function `try()` which accepts a single `array` argument containing up to _three_ function references like so, `{ <func ref>, catch{}, try{} }`.
 
-The `catch` and `finally` terms are themselves global functions like `try`, and like `try` these each take a single argument – an array of function references, but only contain a single function.
+Note that the `catch` and `finally` terms are themselves global functions like `try`, and like `try` these each take a single `array` argument containing only contain a single function like so `{ <func ref> }`.
 
 
 Here are some alternate layouts showing the same thing:
@@ -113,9 +116,9 @@ try( { <func ref>, catch({ <func ref> }), finally({ <func ref> }) } )
 
 #### Custom Errors ####
 
-The objects in this framework use `lua_objects` as the backbone. This example use
+The objects in this framework use [`lua_objects`](https://github.com/dmccuskey/lua-objects) as the backbone.
 
-The unit test has a simple example of subclassing `Error` to make other types of errors. But here's a quick example:
+Here's a quick example how to create a custom error type:
 
 ```
 -- imports
@@ -132,6 +135,9 @@ local ProtocolError = newClass( Error, { name="Protocol Error" } )
 error( ProtocolError( "bad protocol" ) )
 
 ```
+
+The unit test has a simple example of subclassing `Error` to make other types of errors, also the projects: [`dmc_wamp`](https://github.com/dmccuskey/dmc-wamp), [`lua-bytearray`](https://github.com/dmccuskey/lua-bytearray), etc.
+
 
 
 #### Example ####
