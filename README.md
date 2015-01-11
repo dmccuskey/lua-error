@@ -134,15 +134,12 @@ The objects in this framework use [`lua-objects`](https://github.com/dmccuskey/l
 Here's a quick example how to create a custom error type:
 
 ```lua
--- imports
+-- import module
 local Error = require 'lua_error'
-local Objects = require 'lua_objects'
-
--- setup some aliases to make code cleaner
-local newClass = Objects.newClass
 
 -- create custom error class
--- this class could be more complex, but this is all we need for a custom error
+-- this class could be more complex,
+-- but this is all we need for a custom error
 local ProtocolError = newClass( Error, { name="Protocol Error" } )
 
 -- raise an error
