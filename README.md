@@ -20,11 +20,13 @@ try{
   function()
     -- make a call which could raise an error
   end,
+  
   catch{
     function( err )
       -- handle the error
     end
   },
+  
   finally{
     function()
       -- do some cleanup
@@ -33,7 +35,7 @@ try{
 }
 ```
 
-Note: the `catch{}` and `finally{}` are optional.
+> Note: the `catch{}` and `finally{}` are optional.
 
 
 
@@ -80,14 +82,16 @@ As shown, `error()` is often only used to create string-type errors. There are a
 
   Like `system.error.overflow`, `system.error.protocol`, etc
 
-Though one feature of `error()` is that its argument can be anything, not just a string. So, to help the issue, we can use an Error object. More on this later.
+Though one feature of `error()` which can help is that its argument can be anything, not just a string, so we'll give it some Error objects. More on this later.
 
 
 #### try(), catch(), finally() ####
 
 This function trio is the backbone of awesome error handling. The following is the basic structure using all three of the functions.
 
-Note: in the example below, `<func ref>` represents a function reference, for example: `function() -- do stuff end`.
+> Note: in the example below, `<func ref>` represents a function reference, for example: 
+>
+> `local func_ref = function() end`
 
 ```lua
 try{
@@ -103,14 +107,13 @@ try{
 }
 ```
 
-
 This format works because it takes advantage of Lua's dual-way to call functions, eg:
 
 `hello()` or `hello{}`, the latter being equivalent to `hello( {} )`
 
 So essentially this format is really a function `try()` which accepts a single `array` argument containing up to _three_ function references like so, `{ <func ref>, catch{}, finally{} }`.
 
-Note that the terms `catch` and `finally` are themselves global functions just like `try`, and like `try` these each take a single `array` argument but contain only a single function like so `{ <func ref> }`.
+Keep in mind that the terms `catch` and `finally` are themselves global functions just like `try`, and like `try` these each take a single `array` argument but contain only a single function like so `{ <func ref> }`.
 
 
 Here are some alternate layouts showing the same thing:
