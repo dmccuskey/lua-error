@@ -39,7 +39,7 @@ SOFTWARE.
 
 -- Semantic Versioning Specification: http://semver.org/
 
-local VERSION = "1.1.2"
+local VERSION = "1.1.3"
 
 
 
@@ -592,15 +592,34 @@ ClassBase.superCall = superCall
 --====================================================================--
 
 
+-- makeNewClassGlobal
+-- modifies the global namespace with newClass()
+-- add or remove
+--
+local function makeNewClassGlobal( is_global )
+	is_global = is_global~=nil and is_global or true
+	if _G.newClass ~= nil then
+		print( "WARNING: newClass exists in global namespace" )
+	elseif is_global == true then
+		_G.newClass = newClass
+	else
+		_G.newClass = nil
+	end
+end
+
+makeNewClassGlobal() -- start it off
+
+
 return {
-	__version = VERSION,
-	__superCall = superCall, -- for testing
+	__version=VERSION,
+	__superCall=superCall, -- for testing
+	setNewClassGlobal=makeNewClassGlobal,
 
-	registerCtorName = registerCtorName,
-	registerDtorName = registerDtorName,
+	registerCtorName=registerCtorName,
+	registerDtorName=registerDtorName,
 
-	inheritsFrom = inheritsFrom, -- backwards compatibility
-	newClass = newClass,
+	inheritsFrom=inheritsFrom, -- backwards compatibility
+	newClass=newClass,
 
-	Class = ClassBase
+	Class=ClassBase
 }
