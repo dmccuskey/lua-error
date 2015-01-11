@@ -8,7 +8,7 @@ Robust error handling for Lua which features:
 
 ### Quick ###
 
-```
+```lua
 -- import creates a base Error class and global funcs try(), catch(), finally()
 
 local Error = require 'lua_error'
@@ -49,15 +49,15 @@ There are two different components to this library which can either be used toge
 
 #### Lua Errors ####
 
-The basic pieces of error handling built into Lua are the functions `error()` and `pcall()`. `error()` is used to raise an error condition in a program:
+The basic pieces of error handling built into Lua are the functions `error()` and `pcall()`. We only need to focus on `error()`, since that's what we use to raise an error condition in a program:
 
-```
+```lua
 error( "this is my error" )
 ```
 
 And creates something like this:
 
-```
+```lua
 my_lua_file.lua:17: this is my error
 stack traceback:
 	[C]: in function 'error'
@@ -68,9 +68,19 @@ stack traceback:
 	/path_to_file/main.lua:110: in main chunk
 ```
 
-Often `error()` is only used to create string-errors. The drawback to these types of errors is they are fragile and hard to represent other meaningful errors (eg, `system.error.overflow`, `system.error.protocol`, `system.error.authentication`, etc).
+In the error we can see our error string "this is my error" and the corresponding traceback.
 
-Though one feature of `error()` which we can use to our advantage is that it will pass back anything you send in (including objects!). More on this later.
+As shown, `error()` is often only used to create string-type errors. There are a couple of drawbacks to these types of errors in that they are:
+
+1. fragile
+
+  Is that string "`ProtocolError`" from my module or yours? If string "`out of data`" changes then my code will break
+
+2. harder to represent other meaningful errors
+
+  Like `system.error.overflow`, `system.error.protocol`, etc
+
+Though one feature of `error()` is that its argument can be anything, not just a string. So, to help the issue, we can use an Error object. More on this later.
 
 
 #### try(), catch(), finally() ####
@@ -79,7 +89,7 @@ This function trio is the backbone of awesome error handling. The following is t
 
 Note: in the example below, `<func ref>` represents a function reference, for example: `function() -- do stuff end`.
 
-```
+```lua
 try{
   <func ref>,
   
@@ -98,29 +108,29 @@ This format works because it takes advantage of Lua's dual-way to call functions
 
 `hello()` or `hello{}`, the latter being equivalent to `hello( {} )`
 
-So essentially this format is really a function `try()` which accepts a single `array` argument containing up to _three_ function references like so, `{ <func ref>, catch{}, try{} }`.
+So essentially this format is really a function `try()` which accepts a single `array` argument containing up to _three_ function references like so, `{ <func ref>, catch{}, finally{} }`.
 
-Note that the `catch` and `finally` terms are themselves global functions like `try`, and like `try` these each take a single `array` argument containing only contain a single function like so `{ <func ref> }`.
+Note that the terms `catch` and `finally` are themselves global functions just like `try`, and like `try` these each take a single `array` argument but contain only a single function like so `{ <func ref> }`.
 
 
 Here are some alternate layouts showing the same thing:
 
-```
+```lua
 flattened out:
 try{ <func ref>, catch{ <func ref> }, finally{ <func ref> } }
 
 same thing, including parens:
-try( { <func ref>, catch({ <func ref> }), finally({ <func ref> }) } )
+try({ <func ref>, catch({ <func ref> }), finally({ <func ref> }) })
 ```
 
 
 #### Custom Errors ####
 
-The objects in this framework use [`lua_objects`](https://github.com/dmccuskey/lua-objects) as the backbone.
+The objects in this framework use [`lua-objects`](https://github.com/dmccuskey/lua-objects) as the backbone.
 
 Here's a quick example how to create a custom error type:
 
-```
+```lua
 -- imports
 local Error = require 'lua_error'
 local Objects = require 'lua_objects'
@@ -129,22 +139,22 @@ local Objects = require 'lua_objects'
 local newClass = Objects.newClass
 
 -- create custom error class
+-- this class could be more complex, but this is all we need for a custom error
 local ProtocolError = newClass( Error, { name="Protocol Error" } )
 
 -- raise an error
 error( ProtocolError( "bad protocol" ) )
-
 ```
 
-The unit test has a simple example of subclassing `Error` to make other types of errors, also the projects: [`dmc_wamp`](https://github.com/dmccuskey/dmc-wamp), [`lua-bytearray`](https://github.com/dmccuskey/lua-bytearray), etc.
+For more examples of custom errors, you can check out the unit tests or the projects [`dmc-wamp`](https://github.com/dmccuskey/dmc-wamp), [`lua-bytearray`](https://github.com/dmccuskey/lua-bytearray), etc.
 
 
 
 #### Example ####
 
-The following code snippet is a real-life example taken from `dmc_wamp`:
+The following code snippet is a real-life example taken from [`dmc-wamp`](https://github.com/dmccuskey/dmc-wamp):
 
-```
+```lua
 	try{
 		function()
 			self._session:onOpen( { transport=self } )
