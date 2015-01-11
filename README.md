@@ -45,21 +45,21 @@ The library is a culmination of several ideas found on the Internet put into a c
 
 There are two different components to this library which can either be used together or independently:
 
-1. *functions*: `try`, `catch`, and `finally` which give structure
+1. *Gobal functions*: `try`, `catch`, and `finally` which give structure
 2. *Error object class*: which can be used by itself or subclassed for more refined errors
 
 
 #### Lua Errors ####
 
-The basic pieces of error handling built into Lua are the functions `error()` and `pcall()`. We only need to focus on `error()`, since that's what we use to raise an error condition in a program:
+The basic pieces of error handling built into Lua are the functions `error()` and `pcall()`. We only need to focus on `error()`, since that's what we use to raise an error condition in a program, like so:
 
 ```lua
 error( "this is my error" )
 ```
 
-And creates something like this:
+that in turn will create something like this:
 
-```lua
+```
 my_lua_file.lua:17: this is my error
 stack traceback:
 	[C]: in function 'error'
@@ -70,19 +70,19 @@ stack traceback:
 	/path_to_file/main.lua:110: in main chunk
 ```
 
-In the error we can see our error string "this is my error" and the corresponding traceback.
+In the error we can see our error string "`this is my error`" and the corresponding traceback.
 
-As shown, `error()` is often only used to create string-type errors. There are a couple of drawbacks to these types of errors in that they are:
+As shown in our simple example, `error()` is often only used to create string-type errors. There are a couple of drawbacks to these types of errors in that they are:
 
-1. fragile
+1. they are fragile
 
   Is that string "`ProtocolError`" from my module or yours? If string "`out of data`" changes then my code will break
 
-2. harder to represent other meaningful errors
+2. they are harder to represent other, finer-grained errors
 
-  Like `system.error.overflow`, `system.error.protocol`, etc
+  Like `error.overflow`, `app.error.protocol`, etc
 
-Though one feature of `error()` which can help is that its argument can be anything, not just a string, so we'll give it some Error objects. More on this later.
+Though one feature of `error()` which can help is that its argument can be anything, not just a string, so later we'll give it some Error objects.
 
 
 #### try(), catch(), finally() ####
@@ -186,8 +186,8 @@ The following code snippet is a real-life example taken from [`dmc-wamp`](https:
 ```
 
 In the `catch` you see that:
-* first, we're checking to see if it's a regular string-type error. if so, re-raise the error.
-* second, we're checking the object-type of the error using the method `isa()`, looking for a `ProtocolError`
+* first, we're checking to see if it's a regular string-type error. if so, re-raise the error since we only care about Error objects.
+* second, by using the method `isa`, see if the error is type `ProtocolError`, bailout with protocol error.
 * third, it's not an error we can handle, so bailout with an internal error.
 
 
