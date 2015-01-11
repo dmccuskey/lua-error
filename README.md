@@ -41,7 +41,7 @@ Note: the `catch{}` and `finally{}` are optional.
 
 The library is a culmination of several ideas found on the Internet put into a cohesive package. It was also inspired by the error handling in Python. (see References below)
 
-There are two different components to this library which can either be used together or independantly:
+There are two different components to this library which can either be used together or independently:
 
 1. *functions*: `try`, `catch`, and `finally` which give structure
 2. *Error object class*: which can be used by itself or subclassed for more refined errors
