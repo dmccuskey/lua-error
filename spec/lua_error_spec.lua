@@ -4,17 +4,19 @@
 -- Unit Testing for lua_error using Busted
 --====================================================================--
 
--- Semantic Versioning Specification: http://semver.org/
 
-local VERSION = "0.1.0"
+package.path = './dmc_lua/?.lua;' .. package.path
 
 
 
 --====================================================================--
---== Path Setup
+--== Test: Lua Error
+--====================================================================--
 
 
-package.path = './dmc_lua/?.lua;' .. package.path
+-- Semantic Versioning Specification: http://semver.org/
+
+local VERSION = "0.1.0"
 
 
 
@@ -24,15 +26,6 @@ package.path = './dmc_lua/?.lua;' .. package.path
 
 local Error = require 'lua_error'
 local Objects = require 'lua_objects'
-
-
-
---====================================================================--
---== Setup, Constants
-
-
--- setup some aliases to make code cleaner
-local newClass = Objects.newClass
 
 
 
