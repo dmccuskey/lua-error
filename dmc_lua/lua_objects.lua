@@ -39,7 +39,7 @@ SOFTWARE.
 
 -- Semantic Versioning Specification: http://semver.org/
 
-local VERSION = "1.1.3"
+local VERSION = "1.1.4"
 
 
 
@@ -131,7 +131,7 @@ local function registerCtorName( name, class )
 end
 
 -- registerDtorName
--- add names for the constructor
+-- add names for the destructor
 --
 local function registerDtorName( name, class )
 	class = class or ClassBase
@@ -368,12 +368,8 @@ local function blessObject( inheritance, params )
 		__tostring = function(obj)
 			return obj:__tostring__(o_id)
 		end,
-		__call = function( obj, ... )
-			local p = {
-				data={...},
-				set_isClass=false
-			}
-			return initializeObject( obj, p )
+		__call = function( cls, ... )
+			return cls:__ctor__( ... )
 		end
 	}
 	setmetatable( o, mt )
