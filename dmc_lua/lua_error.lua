@@ -52,7 +52,7 @@ local Objects = require 'lua_objects'
 
 
 -- Check imports
-
+-- TODO: work on this
 assert( Objects, "lua_error: requires lua_objects" )
 if checkModule then checkModule( Objects, '1.1.2' ) end
 
@@ -104,6 +104,8 @@ local Error = newClass( nil, { name="Error Instance" } )
 
 --== Class Constants ==--
 
+Error.__version = VERSION
+
 Error.DEFAULT_PREFIX = "ERROR: "
 Error.DEFAULT_MESSAGE = "There was an error"
 
@@ -143,8 +145,6 @@ _G.try = try
 _G.catch = catch
 _G.finally = finally
 
-
-Error.__version = VERSION
 
 
 return Error
