@@ -39,7 +39,7 @@ SOFTWARE.
 
 -- Semantic Versioning Specification: http://semver.org/
 
-local VERSION = "1.1.4"
+local VERSION = "1.2.1"
 
 
 
@@ -180,6 +180,7 @@ local function superCall( self, ... )
 	-- @params lock Class object with which to constrain searching
 	--
 	function findMethod( classes, name, lock )
+		if not classes then return end -- when using mixins, etc
 		local cls = nil
 		for _, class in ipairs( classes ) do
 			if not lock or class == lock then
@@ -214,6 +215,9 @@ local function superCall( self, ... )
 	-- call method if found
 	--
 	c = self_dmc_super[ # self_dmc_super ]
+	-- TODO: when c==nil
+	-- if c==nil or type(c)~='table' then return end
+
 	s = findMethod( c.__parents, method, parent_lock )
 	if s then
 		tinsert( self_dmc_super, s )
@@ -508,6 +512,10 @@ end
 
 function ClassBase.__getters:is_instance()
 	return not self.__is_class
+end
+
+function ClassBase.__getters:version()
+	return self.__version
 end
 
 
