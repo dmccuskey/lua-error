@@ -39,7 +39,7 @@ SOFTWARE.
 
 -- Semantic Versioning Specification: http://semver.org/
 
-local VERSION = "1.2.1"
+local VERSION = "1.2.2"
 
 
 
@@ -532,7 +532,10 @@ function ClassBase:isa( the_class )
 	else
 		local parents = self.__parents
 		for i=1, #parents do
-			isa = parents[i]:isa( the_class )
+			local parent, isa = parents[i], false
+			if parent.isa then
+				isa = parent:isa( the_class )
+			end
 			if isa == true then break end
 		end
 	end
