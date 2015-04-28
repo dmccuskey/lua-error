@@ -14,7 +14,7 @@ module_config = {
 				"lua_error.lua"
 		],
 		"requires": [
-				"lua-objects"
+				"lua-class"
 		]
 	},
 	"tests": {

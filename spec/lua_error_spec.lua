@@ -25,7 +25,6 @@ local VERSION = "0.1.0"
 
 
 local Error = require 'lua_error'
-local Objects = require 'lua_objects'
 
 
 
