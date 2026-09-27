@@ -1,195 +1,156 @@
-## lua-error ##
+# lua-error
 
-Robust error handling for Lua which features:
+`try`, `catch` and `finally` for Lua 5.1, and error classes you can raise and recognize.
 
-* `try()`, `catch()`, `finally()` functions
-* custom error objects
-
-
-### Quick ###
+Lua raises errors with `error()` and catches them with `pcall()`. lua-error puts a structure around them, modeled on Python's `try` / `except` / `finally`, and adds an `Error` class to raise instead of a string, so a handler can tell its own errors from everyone else's:
 
 ```lua
--- import creates a base Error class and global funcs try(), catch(), finally()
-
 local Error = require 'lua_error'
 
-
--- do this anywhere in your code:
-
 try{
-  function()
-    -- make a call which could raise an error
-  end,
-  
-  catch{
-    function( err )
-      -- handle the error
-    end
-  },
-  
-  finally{
-    function()
-      -- do some cleanup
-    end
-  }
-}
-```
+	function()
+		error( 'something went wrong' )
+	end,
 
-> Note: the `catch{}` and `finally{}` are optional.
+	catch{
+		function( err )
+			print( 'caught:', err )
+		end
+	},
 
-
-
-### Overview ###
-
-The library is a culmination of several ideas found on the Internet put into a cohesive package. It was also inspired by the error handling in Python. (see References below)
-
-There are two different components to this library which can either be used together or independently:
-
-1. *Gobal functions*: `try`, `catch`, and `finally` which give structure
-2. *Error object class*: which can be used by itself or subclassed for more refined errors
-
-
-#### Lua Errors ####
-
-The basic pieces of error handling built into Lua are the functions `error()` and `pcall()`. We only need to focus on `error()`, since that's what we use to raise an error condition in a program, like so:
-
-```lua
-error( "this is my error" )
-```
-
-that in turn will create something like this:
-
-```
-my_lua_file.lua:17: this is my error
-stack traceback:
-	[C]: in function 'error'
-	/path_to_file/my_lua_file.lua:17: in main chunk
-	[C]: in function 'require'
-	?: in function 'require'
-	/path_to_file/main.lua:104: in function 'main'
-	/path_to_file/main.lua:110: in main chunk
-```
-
-In the error we can see our error string "`this is my error`" and the corresponding traceback.
-
-As shown in our simple example, `error()` is often only used to create string-type errors. There are a couple of drawbacks to these types of errors in that they are:
-
-1. they are fragile
-
-  Is that string "`ProtocolError`" from my module or yours? If string "`out of data`" changes then my code will break
-
-2. they are harder to represent other, finer-grained errors
-
-  Like `error.overflow`, `app.error.protocol`, etc
-
-Though one feature of `error()` which can help is that its argument can be anything, not just a string, so later we'll give it some Error objects.
-
-
-#### try(), catch(), finally() ####
-
-This function trio is the backbone of awesome error handling. The following is the basic structure using all three of the functions.
-
-> Note: in the example below, `<func ref>` represents a function reference, for example: 
->
-> `local func_ref = function() end`
-
-```lua
-try{
-  <func ref>,
-  
-  catch{
-    <func ref>
-  },
-  
-  finally{
-    <func ref>
-  }
-}
-```
-
-This format works because it takes advantage of Lua's dual-way to call functions, eg:
-
-`hello()` or `hello{}`, the latter being equivalent to `hello( {} )`
-
-So essentially this format is really a function `try()` which accepts a single `array` argument containing up to _three_ function references like so, `{ <func ref>, catch{}, finally{} }`.
-
-Keep in mind that the terms `catch` and `finally` are themselves global functions just like `try`, and like `try` these each take a single `array` argument but contain only a single function like so `{ <func ref> }`.
-
-
-Here are some alternate layouts showing the same thing:
-
-```lua
-flattened out:
-try{ <func ref>, catch{ <func ref> }, finally{ <func ref> } }
-
-same thing, including parens:
-try({ <func ref>, catch({ <func ref> }), finally({ <func ref> }) })
-```
-
-
-#### Custom Errors ####
-
-The objects in this framework use [`lua-objects`](https://github.com/dmccuskey/lua-objects) as the backbone.
-
-Here's a quick example how to create a custom error type:
-
-```lua
--- import module
-local Error = require 'lua_error'
-
--- create custom error class
--- this class could be more complex,
--- but this is all we need for a custom error
-local ProtocolError = newClass( Error, { name="Protocol Error" } )
-
--- raise an error
-error( ProtocolError( "bad protocol" ) )
-```
-
-For more examples of custom errors, you can check out the unit tests or the projects [`dmc-wamp`](https://github.com/dmccuskey/dmc-wamp), [`lua-bytearray`](https://github.com/dmccuskey/lua-bytearray), etc.
-
-
-
-#### Example ####
-
-The following code snippet is a real-life example taken from [`dmc-wamp`](https://github.com/dmccuskey/dmc-wamp):
-
-```lua
-	try{
+	finally{
 		function()
-			self._session:onOpen( { transport=self } )
-		end,
-
-		catch{
-			function(e)
-				if type(e)=='string' then
-					error( e )
-				elseif e:isa( Error.ProtocolError ) then
-					print( e.traceback )
-					self:_bailout{
-						code=WebSocket.CLOSE_STATUS_CODE_PROTOCOL_ERROR,
-						reason="WAMP Protocol Error"
-					}
-				else
-					print( e.traceback )
-					self:_bailout{
-						code=WebSocket.CLOSE_STATUS_CODE_INTERNAL_ERROR,
-						reason="WAMP Internal Error ({})"
-					}
-				end
-			end
-		}
+			print( 'clean up' )
+		end
 	}
+}
 ```
 
-In the `catch` you see that:
-* first, we're checking to see if it's a regular string-type error. if so, re-raise the error since we only care about Error objects.
-* second, by using the method `isa`, see if the error is type `ProtocolError`, bailout with protocol error.
-* third, it's not an error we can handle, so bailout with an internal error.
+## Features
 
+- `try{}`, `catch{}` and `finally{}`: three global functions that read like the statements in other languages
+- The error, a string or an object, is passed to the `catch` function
+- An `Error` base class with a message, a prefix and the traceback from where it was created
+- Subclass `Error` for your own kinds of error, and tell them apart with `isa()`
+- `try()` returns the value of the function it ran
+- Pure Lua 5.1, one file plus [lua-class](https://github.com/dmccuskey/lua-class); MIT licensed
 
-###References###
+`finally` has bugs: it doesn't run on success unless there is a `catch`, and it doesn't run when the `catch` raises an error. See [Known Issues](docs/api.md#known-issues).
 
-* https://gist.github.com/cwarden/1207556
-* http://www.lua.org/pil/8.4.html
-* http://www.lua.org/wshop06/Belmonte.pdf
+## Quick Start
+
+The following steps will get you up and running in about 5 minutes with Lua 5.1 on macOS or Linux. You will catch a Lua error, then raise and catch an error class of your own.
+
+Prerequisites: Lua 5.1 (`lua -v` shows `Lua 5.1.x`) and git.
+
+### 1. Get the Code
+
+In an empty folder:
+
+```sh
+git clone https://github.com/dmccuskey/lua-error.git
+```
+
+`lua-error/dmc_lua/` holds the module, `lua_error.lua`, and the one it needs, `lua_class.lua`.
+
+### 2. Catch an Error
+
+Create `main.lua` in the same folder:
+
+```lua
+package.path = './lua-error/dmc_lua/?.lua;' .. package.path
+local Error = require 'lua_error'
+
+try{
+	function()
+		local player = nil
+		print( player.name )  -- a mistake: raises an error
+	end,
+
+	catch{
+		function( err )
+			print( 'caught:', err )
+		end
+	},
+
+	finally{
+		function()
+			print( 'finally: runs either way' )
+		end
+	}
+}
+
+print( 'still running' )
+```
+
+Run it:
+
+```sh
+lua main.lua
+```
+
+```text
+caught:	main.lua:7: attempt to index local 'player' (a nil value)
+finally: runs either way
+still running
+```
+
+If it shows `module 'lua_error' not found`, run it from the folder that holds `lua-error/`.
+
+Requiring `lua_error` creates the global functions `try`, `catch` and `finally`. `try` runs the first function; when it raises an error, the `catch` function gets the error, and the program goes on.
+
+**Going further:** what `try()` returns, and which parts can be left out ([try, catch, finally](docs/api.md#try-catch-finally)).
+
+### 3. Raise Your Own Kind of Error
+
+Add this to the end of `main.lua`:
+
+```lua
+local Class = require 'lua_class'
+
+local NetworkError = Class.newClass( Error, { name="Network Error" } )
+
+local function loadScores( url )
+	error( NetworkError( 'no connection to ' .. url ) )
+end
+
+try{
+	function()
+		loadScores( 'https://scores.example.com/top10' )
+	end,
+
+	catch{
+		function( err )
+			if type( err )=='table' and err:isa( NetworkError ) then
+				print( 'caught:', err.NAME, '/', err.message )
+			else
+				error( err )  -- not ours: raise it again
+			end
+		end
+	}
+}
+```
+
+`lua main.lua` now also shows:
+
+```text
+caught:	Network Error	/	no connection to https://scores.example.com/top10
+```
+
+`NetworkError` is a subclass of `Error`; calling it creates an error object, and `error()` raises it. The `catch` checks the kind of error with `isa()` and raises anything else again. Check `type( err )=='table'` first: Lua's own errors are strings, which have no `isa()`.
+
+**Going further:** the error object's fields, prefixes and default messages ([The Error Class](docs/api.md#the-error-class)); what happens to an error object nobody catches ([Known Issues](docs/api.md#known-issues)).
+
+To update, pull the repository again (`git -C lua-error pull`), or replace the files in `dmc_lua/` with the newer ones.
+
+## Documentation
+
+- [API reference](docs/api.md): `try`, `catch`, `finally`, the `Error` class, subclasses, known issues
+- [dmc-error](https://github.com/dmccuskey/dmc-error): the same module for Solar2D (formerly Corona SDK), set up like the other DMC Solar2D libraries
+- [lua-class](https://github.com/dmccuskey/lua-class): the class model `Error` is built on
+
+Everything else is listed on the [documentation home](docs/README.md).
+
+## License
+
+lua-error is released under the [MIT License](LICENSE).

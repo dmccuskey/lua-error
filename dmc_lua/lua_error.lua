@@ -2,7 +2,7 @@
 -- lua_error.lua
 --
 -- Documentation:
--- * http://github.com/dmccuskey/lua-error
+-- * https://github.com/dmccuskey/lua-error
 --====================================================================--
 
 --[[
