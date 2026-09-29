@@ -1,6 +1,6 @@
 # API Reference
 
-lua-error 0.4.0: `try`, `catch`, `finally` and the `Error` class. For a first run, see the [Quick Start](../README.md#quick-start).
+lua-error 0.4.1: `try`, `catch`, `finally` and the `Error` class. For a first run, see the [Quick Start](../README.md#quick-start).
 
 | Name | What it is |
 |---|---|
@@ -24,9 +24,9 @@ It needs `lua_class` on the Lua path ([lua-class](https://github.com/dmccuskey/l
 
 - returns the `Error` class
 - sets the globals `try`, `catch` and `finally`
-- loads lua-class, which sets the global `newClass` (see [lua-class](https://github.com/dmccuskey/lua-class))
+- loads lua-class, which sets the global `newClass` (see [lua-class](https://github.com/dmccuskey/lua-class)); lua-error itself uses `Class.newClass`, so it also works with that global turned off
 
-The version is in `Error.__version` (`"0.4.0"`).
+The version is in `Error.__version` (`"0.4.1"`).
 
 ## try, catch, finally
 

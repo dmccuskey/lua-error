@@ -40,7 +40,7 @@ SOFTWARE.
 
 -- Semantic Versioning Specification: http://semver.org/
 
-local VERSION = "0.4.0"
+local VERSION = "0.4.1"
 
 
 
@@ -161,7 +161,7 @@ end
 --====================================================================--
 
 
-local Error = newClass( nil, { name="Error Instance" } )
+local Error = Class.newClass( nil, { name="Error Instance" } )
 
 --== Class Constants ==--
 
