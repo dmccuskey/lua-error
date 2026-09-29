@@ -1,6 +1,6 @@
 # API Reference
 
-lua-error 0.3.0: `try`, `catch`, `finally` and the `Error` class. For a first run, see the [Quick Start](../README.md#quick-start).
+lua-error 0.4.0: `try`, `catch`, `finally` and the `Error` class. For a first run, see the [Quick Start](../README.md#quick-start).
 
 | Name | What it is |
 |---|---|
@@ -26,7 +26,7 @@ It needs `lua_class` on the Lua path ([lua-class](https://github.com/dmccuskey/l
 - sets the globals `try`, `catch` and `finally`
 - loads lua-class, which sets the global `newClass` (see [lua-class](https://github.com/dmccuskey/lua-class))
 
-The version is in `Error.__version` (`"0.3.0"`).
+The version is in `Error.__version` (`"0.4.0"`).
 
 ## try, catch, finally
 
@@ -51,20 +51,23 @@ local result = try{
 }
 ```
 
-`try{ ... }` is a call of `try()` with one table: Lua lets a function called with a table leave out the parentheses. The table holds up to three functions, **in this order**: the one to run, the catch, the finally. `catch{ f }` and `finally{ f }` do nothing but return `f`; they are there to be read. So these are the same:
+`try{ ... }` is a call of `try()` with one table: Lua lets a function called with a table leave out the parentheses. The table holds the function to run first, then a catch, a finally, or both. `catch{ f }` and `finally{ f }` mark `f` as the one or the other, so either can be left out:
 
 ```lua
 try{ f, catch{ g }, finally{ h } }
-try( { f, catch( { g } ), finally( { h } ) } )
-try{ f, g, h }
+try{ f, catch{ g } }
+try{ f, finally{ h } }
+try( { f, catch( { g } ), finally( { h } ) } )   -- the same as the first
 ```
+
+Plain functions, without `catch{}` or `finally{}`, also work, by their place: second is the catch, third the finally (`try{ f, g, h }`, `try{ f, nil, h }`).
 
 What happens:
 
 1. `try` runs the first function with `pcall()`, with no arguments.
 2. If it raised an error, and there is a catch function, the catch function is called with the error. The error is what was given to `error()`: a string (for Lua's own errors, with the file and line in front) or an object.
-3. If there is a finally function, it is called, with no arguments.
-4. `try` returns the first value the function returned, or the error if it raised one.
+3. If there is a finally function, it is called, with no arguments, whatever happened before.
+4. If the function raised an error and there is no catch, or the catch raised one, that error goes on up, as it was. Otherwise `try` returns the values of the function, or of the catch if there was an error.
 
 `try{}` without a function is an error: `lua-error: missing function for try()`.
 
@@ -84,23 +87,31 @@ catch{
 }
 ```
 
-When there is no catch, the error is **not raised again**: `try` returns it, and the program goes on as if nothing happened. See [Known Issues](#known-issues).
+When there is no catch, the error goes on up, as if there were no `try`, after the finally function has run.
 
 ### finally
 
-The finally function runs after the function and the catch, for cleanup that has to happen either way: closing a file, hiding a spinner. It has two bugs (see [Known Issues](#known-issues)):
+The finally function runs after the function and the catch, for cleanup that has to happen either way: closing a file, hiding a spinner. It runs on success, on an error, with or without a catch, and when the catch raises an error, for example to pass on one it doesn't handle; the error goes on up after it. Its return values are ignored.
 
-- **Without a catch, it runs only when there is an error.** `try{ f, finally{ h } }` puts `h` second, where the catch goes, so `h` is called as the catch. Until this is fixed, leave the catch's place empty: `try{ f, nil, finally{ h } }`.
-- **It doesn't run when the catch raises an error**, for example to pass on an error it doesn't handle.
+```lua
+local fh = assert( io.open( path ) )
+try{
+	function() parse( fh:read( '*a' ) ) end,
+	finally{ function() fh:close() end }   -- closed, and a parse error still goes on up
+}
+```
 
 ### Return Value
 
 ```lua
-local count = try{ function() return 42 end }          --> 42
-local msg   = try{ function() error( 'no disk' ) end }  --> "main.lua:2: no disk"
+local w, h = try{ function() return 640, 480 end }                   --> 640, 480
+local size = try{
+	function() error( 'no disk' ) end,
+	catch{ function( err ) return 0 end }
+}                                                                    --> 0
 ```
 
-Only the first value comes back: `try{ function() return 1, 2 end }` returns `1`. `try` returns the error too, whether it was caught or not, so the return value alone can't tell success from failure: to know, set a variable in the catch.
+On success, `try` returns every value of the function. When the catch handled an error, `try` returns what the catch returned: nothing, unless it returns a value, such as a default. When an error goes on up, `try` returns nothing.
 
 ## The Error Class
 
@@ -122,7 +133,7 @@ The object has these fields:
 |---|---|
 | `err.message` | the message |
 | `err.prefix` | the prefix |
-| `err.traceback` | the stack traceback from where the object was created, from `debug.traceback()` |
+| `err.traceback` | the stack traceback from where the object was created |
 | `err.NAME` | the class's name: `"Error Instance"` for `Error`, the `name` given to `newClass()` for a subclass |
 
 `tostring( err )`, and so `print( err )`, gives the prefix, the message, a newline and the traceback:
@@ -130,9 +141,11 @@ The object has these fields:
 ```text
 ERROR: no connection to https://scores.example.com/top10
 stack traceback:
-	./dmc_lua/lua_error.lua:124: in function '__new__'
+	main.lua:29: in function 'loadScores'
 	...
 ```
+
+The traceback starts at the line that created the object (here in `loadScores()`, from the Quick Start), not inside lua-error, lua-class or the constructors of its classes.
 
 Unlike a string, an error object doesn't get the file and line in front of its message: the traceback holds them.
 
@@ -171,20 +184,10 @@ Lua's own errors, and anything raised with `error( 'a string' )`, are strings, w
 
 ## Known Issues
 
-Bugs to be fixed:
-
-- **`finally` runs only on errors when there is no `catch`**: `try{ f, finally{ h } }` calls `h` as the catch, with the error, and never on success. Workaround: `try{ f, nil, finally{ h } }`.
-- **`finally` is skipped when the `catch` raises an error.**
-
-To be looked at:
-
-- **Without a `catch`, errors are swallowed**: `try{ f }` returns the error instead of raising it, with no message. Python and other languages pass on an error nobody catches.
 - **An `Error` object nobody catches loses its message.** Lua 5.1 prints `lua: (error object is not a string)`; the Solar2D Simulator prints nothing at all. Catch your own errors, or raise `tostring( err )` where they may reach the top.
-- `try` returns only the first value of its function, and the error on failure, so its return value can't tell the two apart.
-- The traceback starts inside lua-error and lua-class (`__new__`, `initializeObject`) before it reaches the line that created the error.
+- An error that goes on up through `try` (no catch, or the catch raised it) loses the stack below `try`: a string error's traceback starts at `try`. An `Error` object keeps its own `traceback`.
 - `try`, `catch` and `finally` are always globals, and can't be turned off.
 - Error objects have no file and line in front of their message, unlike string errors: the place is only in the traceback.
-- The tests cover the `Error` class, not `try`, `catch` or `finally`.
 
 ## Background
 

@@ -28,5 +28,6 @@ dmc_lua/
 └── lua_class.lua           what it needs, from lua-class (copy)
 Snakefile                   build rules, for DMC-Lua-Library
 spec/
-└── lua_error_spec.lua      tests (busted)
+├── lua_error_spec.lua      tests of the Error class (busted)
+└── try_spec.lua            tests of try, catch, finally
 ```

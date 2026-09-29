@@ -10,15 +10,17 @@ Only `dmc_lua/lua_error.lua` is written in this repository. `dmc_lua/lua_class.l
 
 ## Testing
 
-The tests are in `spec/lua_error_spec.lua` and use [busted](https://lunarmodules.github.io/busted/) under Lua 5.1 (`luarocks install busted`). From the repository's root folder:
+The tests are in `spec/` and use [busted](https://lunarmodules.github.io/busted/) under Lua 5.1 (`luarocks install busted`). From the repository's root folder:
 
 ```sh
 busted spec
 ```
 
 ```text
-++++++++++++
-12 successes / 0 failures / 0 errors / 0 pending : 0.002634 seconds
++++++++++++++++++++++++++++++++
+31 successes / 0 failures / 0 errors / 0 pending : 0.005805 seconds
 ```
 
-They create `Error` objects and a subclass, and check their fields and `__tostring__()`. They don't test `try`, `catch` or `finally`, nor anything in the [Known Issues](api.md#known-issues).
+`spec/lua_error_spec.lua` creates `Error` objects and a subclass, and checks their fields and `__tostring__()`. `spec/try_spec.lua` tests `try`, `catch` and `finally`: every combination of the parts, the return values, errors going on up, and where an error's traceback starts.
+
+busted has a `finally()` of its own in a spec's environment, so `try_spec.lua` takes the module's `try`, `catch` and `finally` from `_G`.
