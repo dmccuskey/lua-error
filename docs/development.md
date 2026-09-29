@@ -17,10 +17,10 @@ busted spec
 ```
 
 ```text
-+++++++++++++++++++++++++++++++
-31 successes / 0 failures / 0 errors / 0 pending : 0.005805 seconds
+++++++++++++++++++++++++++++++++
+32 successes / 0 failures / 0 errors / 0 pending : 0.006165 seconds
 ```
 
-`spec/lua_error_spec.lua` creates `Error` objects and a subclass, and checks their fields and `__tostring__()`. `spec/try_spec.lua` tests `try`, `catch` and `finally`: every combination of the parts, the return values, errors going on up, and where an error's traceback starts.
+`spec/lua_error_spec.lua` creates `Error` objects and a subclass, and checks their fields and `__tostring__()`. `spec/try_spec.lua` tests `try`, `catch` and `finally`: every combination of the parts, the return values, errors going on up, and where an error's traceback starts. `spec/no_global_spec.lua` checks that the module loads with lua-class's global `newClass` turned off.
 
 busted has a `finally()` of its own in a spec's environment, so `try_spec.lua` takes the module's `try`, `catch` and `finally` from `_G`.
