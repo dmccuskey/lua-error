@@ -32,10 +32,9 @@ try{
 - The error, a string or an object, is passed to the `catch` function
 - An `Error` base class with a message, a prefix and the traceback from where it was created
 - Subclass `Error` for your own kinds of error, and tell them apart with `isa()`
-- `try()` returns the value of the function it ran
+- `try()` returns the values of the function it ran, or of the `catch`
+- An error nobody catches goes on up, after `finally` has run
 - Pure Lua 5.1, one file plus [lua-class](https://github.com/dmccuskey/lua-class); MIT licensed
-
-`finally` has bugs: it doesn't run on success unless there is a `catch`, and it doesn't run when the `catch` raises an error. See [Known Issues](docs/api.md#known-issues).
 
 ## Quick Start
 
